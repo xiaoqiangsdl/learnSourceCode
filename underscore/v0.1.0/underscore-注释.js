@@ -23,6 +23,8 @@ window._ = {
       } else if (obj.each) {
         obj.each(function(value) { iterator.call(context, value, index++); });
       } else {
+        // 针对对象类型
+        // TODO 熟悉下这顿代码
         var i = 0;
         for (var key in obj) {
           var value = obj[key], pair = [key, value];
@@ -326,28 +328,29 @@ window._ = {
   
   /* ------------------------- Object Functions: ---------------------------- */
   
-  // Retrieve the names of an object's properties.
+  // 返回对象的 key
   keys : function(obj) {
     return _.pluck(obj, 'key');
   },
   
-  // Retrieve the values of an object's properties.
+  // 返回对象的 value
   values : function(obj) {
     return _.pluck(obj, 'value');
   },
   
-  // Extend a given object with all of the properties in a source object.
+  // 继承
+  // ？？ 遍历队形的属性 给 另一个对象
   extend : function(destination, source) {
     for (var property in source) destination[property] = source[property];
     return destination;
   },
   
-  // Create a (shallow-cloned) duplicate of an object.
+  // 克隆对象
   clone : function(obj) {
     return _.extend({}, obj);
   },
   
-  // Perform a deep comparison to check if two objects are equal.
+  // 判断两个对象是否相等
   isEqual : function(a, b) {
     // Check object identity.
     if (a === b) return true;
@@ -364,27 +367,28 @@ window._ = {
     var aKeys = _.keys(a), bKeys = _.keys(b);
     // Different object sizes?
     if (aKeys.length != bKeys.length) return false;
-    // Recursive comparison of contents.
+    // 递归遍历子元素
     for (var key in a) if (!_.isEqual(a[key], b[key])) return false;
     return true;
   },
   
-  // Is a given value a DOM element?
+  // 判断是否是 dom 元素
   isElement : function(obj) {
+    // 判断 nodeType 属性是否是 1 -> dom
     return !!(obj && obj.nodeType == 1);
   },
   
-  // Is a given value a real Array?
+  // 判断是否是数组
   isArray : function(obj) {
     return Object.prototype.toString.call(obj) == '[object Array]';
   },
   
-  // Is a given value a Function?
+  // 判断是否是 function
   isFunction : function(obj) {
     return typeof obj == 'function';
   },
   
-  // Is a given variable undefined?
+  // 判断是否是 undefined
   isUndefined : function(obj) {
     return typeof obj == 'undefined';
   },
