@@ -226,7 +226,7 @@ window._ = {
     return _.select(array, function(value){ return !!value; });
   },
   
-  // Return a completely flattened version of an array.
+  // 扁平化数组
   flatten : function(array) {
     return _.inject(array, [], function(memo, value) {
       if (_.isArray(value)) return memo.concat(_.flatten(value));
@@ -235,8 +235,9 @@ window._ = {
     });
   },
   
-  // Return a version of the array that does not contain the specified value(s).
+  // 数组去掉对应值
   without : function(array) {
+    // 【纠错】这里的 index 应为 1，否者会包含 array 参数
     var values = array.slice.call(arguments, 0);
     return _.select(array, function(value){ return !_.include(values, value); });
   },
@@ -395,15 +396,14 @@ window._ = {
   
   /* -------------------------- Utility Functions: -------------------------- */
   
-  // Generate a unique integer id (unique within the entire client session).
-  // Useful for temporary DOM ids.
+  // 生成唯一 ID，可拼接
   uniqueId : function(prefix) {
     var id = this._idCounter = (this._idCounter || 0) + 1;
     return prefix ? prefix + id : id;
   },
   
-  // Javascript templating a-la ERB, pilfered from John Resig's 
-  // "Secrets of the Javascript Ninja", page 83.
+  // 模板引擎生成 - 来自 js 忍者秘籍
+  // ！！加强学习下
   template : function(str, data) {
     var fn = new Function('obj', 
       'var p=[],print=function(){p.push.apply(p,arguments);};' +
