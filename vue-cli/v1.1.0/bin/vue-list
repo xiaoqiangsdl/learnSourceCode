@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+
+var logger = require('../lib/logger')
+var request = require('request')
+var chalk = require('chalk')
+
+/**
+ * Padding.
+ */
+
+console.log()
+// 关闭时打印空格
+process.on('exit', function () {
+  console.log()
+})
+
+/**
+ * List repos.
+ */
+
+// 列出可用的模板
+// @! https://api.github.com/ 利用 github api 获取 git 项目信息
+// 这里用 github api 获取 vuejs-templates 项目组中的各个模板项目信息
+
+// request callback 里 res 本次请求所有信息包含请求和响应 body 只是响应返回信息
+request({
+  url: 'https://api.github.com/users/vuejs-templates/repos',
+  headers: {
+    'User-Agent': 'vue-cli'
+  }
+}, function (err, res, body) {
+  if (err) logger.fatal(err)
+  console.log('  Available official templates:')
+  console.log()
+  // 列出所有可选的模板信息
+  JSON.parse(body).forEach(function (repo) {
+    console.log(
+      '  ' + chalk.yellow('★') +
+      '  ' + chalk.blue(repo.name) +
+      ' - ' + repo.description)
+  })
+})

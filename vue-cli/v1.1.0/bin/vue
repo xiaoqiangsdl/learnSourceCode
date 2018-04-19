@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+
+require('commander')
+  .version(require('../package').version)
+  .usage('<command> [options]')
+  // 如果是 init，就进入 vue-init 文件
+  .command('init', 'generate a new project from a template')
+  // 如果是 list，就进入 vue-list 文件
+  .command('list', 'list available official templates')
+  .parse(process.argv)
