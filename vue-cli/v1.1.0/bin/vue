@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// Git-style sub-commands 子命令
+// commander 会在当前目录下搜索可执行的脚本。xx-xx 格式
+// 这里父命令是 vue, 就会搜索到 vue-init vue-list
 require('commander')
   .version(require('../package').version)
   .usage('<command> [options]')
