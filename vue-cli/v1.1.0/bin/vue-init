@@ -5,15 +5,16 @@ var metadata = require('read-metadata')
 var download = require('download-github-repo')
 var logger = require('../lib/logger')
 var program = require('commander')
-var exists = require('fs').existsSync
+var exists = require('fs').existsSync  // 用于判断路径是否存在
 var join = require('path').join  // 将多个 path 片段连接成规范路径
 var resolve = require('path').resolve  // 解析路径为绝对路径
-var rm = require('rimraf').sync
+var rm = require('rimraf').sync  // 相当于 rm -rf 用于删除文件
 var uid = require('uid')
 var chalk = require('chalk')
 
 /**
  * Usage.
+ * 用法
  */
 
 program
@@ -21,8 +22,8 @@ program
 
 /**
  * Help.
+ * 帮助信息 --help
  */
-// --help 时的帮助信息
 
 program.on('--help', function () {
   console.log('  Examples:')
@@ -38,6 +39,7 @@ program.on('--help', function () {
 /**
  * Help.
  */
+
 // 判断如果输入长度小于 2 位时，直接跳帮助信息
 // @! process.argv 获取命令行输入参数
 // 返回 Array。元素1：node 路径 元素2：当前执行的 js 文件， 其他：额外数据数据。
@@ -47,8 +49,8 @@ if (program.args.length < 2) return program.help()
 
 /**
  * Padding.
+ * 补前后空格
  */
-// 结束补空格
 
 console.log()
 process.on('exit', function () {
@@ -59,14 +61,16 @@ process.on('exit', function () {
  * Settings.
  */
 
-var template = program.args[0]
-var name = program.args[1]
-var dir = program.directory
-var to = resolve(name)
+var template = program.args[0]  // 获取参数1 - 模板
+var name = program.args[1]  // 获取参数2 - 项目名
+var dir = program.directory  // 路径
+var to = resolve(name)  // 当前路径下的项目名
+// 判断当前路径下目录是否存在
 if (exists(to)) logger.fatal('"%s" already exists.', name)
 
 /**
  * Detect if template on file system.
+ * 检测模板是否在文件系统中
  */
 
 if (exists(template)) {
@@ -78,8 +82,11 @@ if (exists(template)) {
 } else {
   /**
    * Detect official template.
+   * 检测官方模板
    */
 
+  // ~ 非算法
+  // 判断是否是 -1？ 没有 / 用官方模板
   if (!~template.indexOf('/')) {
     template = 'vuejs-templates/' + template
   }
@@ -102,6 +109,7 @@ if (exists(template)) {
 
 /**
  * Generate a template given a `src` and `dest`.
+ * 生成模板
  *
  * @param {String} src
  * @param {String} dest
