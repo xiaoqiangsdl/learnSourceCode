@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 
-var Khaos = require('khaos')
-var metadata = require('read-metadata')
-var download = require('download-github-repo')
-var logger = require('../lib/logger')
-var program = require('commander')
+// vue 模板组 git 地址： https://github.com/vuejs-templates
+
+var Khaos = require('khaos')  // 项目脚手架工具
+var metadata = require('read-metadata')  // 加载一个 json/yaml 返回一个对象
+var download = require('download-github-repo')  // 下载 git 项目，通过该包下载不会带上 git 信息
+var logger = require('../lib/logger')  // 打印信息
+var program = require('commander')  // 命令工具
 var exists = require('fs').existsSync  // 用于判断路径是否存在
 var join = require('path').join  // 将多个 path 片段连接成规范路径
 var resolve = require('path').resolve  // 解析路径为绝对路径
 var rm = require('rimraf').sync  // 相当于 rm -rf 用于删除文件
-var uid = require('uid')
-var chalk = require('chalk')
+var uid = require('uid')  // 生成一个唯一 ID
+var chalk = require('chalk')  // 终端颜色工具
 
 /**
  * Usage.
@@ -65,7 +67,7 @@ var template = program.args[0]  // 获取参数1 - 模板
 var name = program.args[1]  // 获取参数2 - 项目名
 var dir = program.directory  // 路径
 var to = resolve(name)  // 当前路径下的项目名
-// 判断当前路径下目录是否存在
+// 判断当前路径下项目目录是否存在。存在的话，打印日志，退出程序
 if (exists(to)) logger.fatal('"%s" already exists.', name)
 
 /**
@@ -96,6 +98,7 @@ if (exists(template)) {
    */
 
   var tmp = '/tmp/vue-template-' + uid()
+  // 将模板下载到本地缓存文件目录中 /temp
   download(template, tmp, function (err) {
     if (err) logger.fatal(err)
     generate(tmp, to, function (err) {
@@ -117,11 +120,13 @@ if (exists(template)) {
  */
 
 function generate (src, dest, fn) {
+  // vue 模板项目中的模板文件存在于 template 文件下，详见 git（最上方）
   var template = join(src, 'template')
   var khaos = new Khaos(template)
   var opts = options(src)
 
   khaos.schema(opts.schema)
+  // !! 最早期的模板项目补全这里不好分析 khaos 还有点小 bug = =，可以看一下一版的代码 0.0
   khaos.read(function (err, files) {
     if (err) logger.fatal(err)
     khaos.parse(files, function (err, schema) {
@@ -149,12 +154,14 @@ function generate (src, dest, fn) {
 
 /**
  * Read prompts metadata.
+ * 获取选项信息
  *
  * @param {String} dir
  * @return {Object}
  */
 
 function options (dir) {
+  // 读取模板根目录下的 meta.json 文件
   var file = join(dir, 'meta.json')
   var opts = exists(file)
     ? metadata.sync(file)
@@ -165,18 +172,21 @@ function options (dir) {
 
 /**
  * Automatically infer the default project name
+ * 自动推断默认项目名
  *
  * @param {Object} opts
  */
 
 function defaultName (opts) {
   var schema = opts.schema || (opts.schema = {})
+  // 补全 name
   if (!schema.name || typeof schema.name !== 'object') {
     schema.name = {
       'type': 'string',
       'default': name
     }
   } else {
+    // 默认名为输入的 name
     schema.name['default'] = name
   }
 }
