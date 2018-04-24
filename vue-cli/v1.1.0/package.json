@@ -4,7 +4,7 @@
   "description": "A simple CLI for scaffolding Vue.js projects.",
   "preferGlobal": true,
   "bin": {
-    "vuetest": "bin/vue"
+    "vue": "bin/vue"
   },
   "scripts": {
     "test": "mocha"
