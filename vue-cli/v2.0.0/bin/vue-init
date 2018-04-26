@@ -6,16 +6,19 @@ var exists = require('fs').existsSync
 var path = require('path')
 var rm = require('rimraf').sync
 var uid = require('uid')
-var ora = require('ora')
+var ora = require('ora')  // 加载样式
 var chalk = require('chalk')
-var inquirer = require('inquirer')
+var inquirer = require('inquirer')   // 终端交互命令
 var request = require('request')
 var logger = require('../lib/logger')
 var generate = require('../lib/generate')
-var checkVersion = require('../lib/check-version')
+var checkVersion = require('../lib/check-version')   // 检查版本
 
 /**
  * Usage.
+ * 用法
+ * 
+ * @add 增加 git 克隆功能
  */
 
 program
@@ -24,6 +27,7 @@ program
 
 /**
  * Help.
+ * 帮助信息  不变
  */
 
 program.on('--help', function () {
@@ -49,6 +53,7 @@ help()
 
 /**
  * Padding.
+ * 补上下空行边距
  */
 
 console.log()
@@ -61,16 +66,20 @@ process.on('exit', function () {
  */
 
 var template = program.args[0]
+// 判断有无斜杠来检验是不是用官方模板
 var hasSlash = template.indexOf('/') > -1
 var rawName = program.args[1]
+// 判断有无项目名，或是指定当前目录
 var inPlace = !rawName || rawName === '.'
 var name = inPlace ? path.relative('../', process.cwd()) : rawName
 var to = path.resolve(rawName || '.')
 var clone = program.clone || false
 
+// 如果存在该目录
 if (exists(to)) {
   inquirer.prompt([{
     type: 'confirm',
+    // 判断是当前目录还是子目录
     message: inPlace
       ? 'Generate project in current directory?'
       : 'Target directory exists. Continue?',
@@ -79,6 +88,7 @@ if (exists(to)) {
     if (answers.ok) {
       run()
     }
+    // 不 ok 就结束了呢 = =
   })
 } else {
   run()
@@ -86,10 +96,12 @@ if (exists(to)) {
 
 /**
  * Check, download and generate the project.
+ * 检查、下载和生成项目
  */
 
 function run () {
   // check if template is local
+  // 检查模板是否是本地的
   if (hasSlash && exists(template)) {
     generate(name, template, to, function (err) {
       if (err) logger.fatal(err)
@@ -97,9 +109,12 @@ function run () {
       logger.success('Generated "%s".', name)
     })
   } else {
+    // 不是本地的去官方下载
+    // 先检查版本
     checkVersion(function () {
       if (!hasSlash) {
         // use official templates
+        // template 组名 + 项目名
         template = 'vuejs-templates/' + template
         checkDistBranch(template, downloadAndGenerate)
       } else {
@@ -111,12 +126,14 @@ function run () {
 
 /**
  * Check if the template has a dist branch, if yes, use that.
+ * 检查模板是否是一个 dist 分支。有 dist 用 dist，没有用 master
  *
  * @param {String} template
  * @param {Function} cb
  */
 
 function checkDistBranch (template, cb) {
+  // @! 通过 https://api.github.com/repos/:userId/:project/branches 获取分支信息
   request({
     url: 'https://api.github.com/repos/' + template + '/branches',
     headers: {
@@ -140,6 +157,7 @@ function checkDistBranch (template, cb) {
 
 /**
  * Download a generate from a template repo.
+ * 下载本地 tmp，生成项目
  *
  * @param {String} template
  */
@@ -148,13 +166,17 @@ function downloadAndGenerate (template) {
   var tmp = '/tmp/vue-template-' + uid()
   var spinner = ora('downloading template')
   spinner.start()
+  // 下载到本地 tmp，
   download(template, tmp, { clone: clone }, function (err) {
     spinner.stop()
     if (err) logger.fatal('Failed to download repo ' + template + ': ' + err.message.trim())
+    // 生成项目
     generate(name, tmp, to, function (err) {
+      // 移除本地 tmp 文件
       rm(tmp)
       if (err) logger.fatal(err)
       console.log()
+      // 打印成功信息
       logger.success('Generated "%s".', name)
     })
   })

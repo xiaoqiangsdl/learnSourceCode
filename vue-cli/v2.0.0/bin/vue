@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+// 相对 v1 没变化
 require('commander')
   .version(require('../package').version)
   .usage('<command> [options]')
