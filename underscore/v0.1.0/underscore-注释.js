@@ -242,8 +242,7 @@ window._ = {
     return _.select(array, function(value){ return !_.include(values, value); });
   },
   
-  // Produce a duplicate-free version of the array. If the array has already
-  // been sorted, you have the option of using a faster algorithm.
+  // 数组去重
   uniq : function(array, isSorted) {
     return _.inject(array, [], function(memo, el, i) {
       if (0 == i || (isSorted ? _.last(memo) != el : !_.include(memo, el))) memo.push(el);
@@ -262,8 +261,7 @@ window._ = {
     });
   },
   
-  // Zip together multiple lists into a single array -- elements that share
-  // an index go together.
+  // 压缩多个数组成一个
   zip : function() {
     var args = _.toArray(arguments);
     var length = _.max(_.pluck(args, 'length'));
@@ -283,8 +281,7 @@ window._ = {
   
   /* ----------------------- Function Functions: -----------------------------*/
   
-  // Create a function bound to a given object (assigning 'this', and arguments,
-  // optionally). Binding with arguments is also known as 'curry'.
+  // 给方法绑定上下文对象和可选的参数
   bind : function(func, context) {
     if (!context) return func;
     var args = _.toArray(arguments).slice(2);
@@ -294,8 +291,7 @@ window._ = {
     };
   },
   
-  // Bind all of an object's methods to that object. Useful for ensuring that 
-  // all callbacks defined on an object belong to it.
+  // 将对象里的默写方法绑定到该对象上
   bindAll : function() {
     var args = _.toArray(arguments);
     var context = args.pop();
@@ -304,22 +300,19 @@ window._ = {
     });
   },
   
-  // Delays a function for the given number of milliseconds, and then calls
-  // it with the arguments supplied.
+  // 延迟执行
   delay : function(func, wait) {
     var args = _.toArray(arguments).slice(2);
     return window.setTimeout(function(){ return func.apply(func, args); }, wait);
   },
   
-  // Defers a function, scheduling it to run after the current call stack has 
-  // cleared.
+  // 延迟调用到当前栈清空为止
   defer : function(func) {
+    // 相当于 delay 的 wait 参数为空时
     return _.delay.apply(_, [func, 1].concat(_.toArray(arguments).slice(1)));
   },
   
-  // Returns the first function passed as an argument to the second, 
-  // allowing you to adjust arguments, run code before and after, and 
-  // conditionally execute the original function.
+  // 执行函数前先执行的函数
   wrap : function(func, wrapper) {
     return function() {
       var args = [func].concat(_.toArray(arguments));
@@ -355,16 +348,16 @@ window._ = {
   isEqual : function(a, b) {
     // Check object identity.
     if (a === b) return true;
-    // Different types?
+    // 判断是否是同类型
     var atype = typeof(a), btype = typeof(b);
     if (atype != btype) return false;
     // Basic equality test (watch out for coercions).
     if (a == b) return true;
-    // One of them implements an isEqual()?
+    // 对象有 isEqual 方法的话，用其判断
     if (a.isEqual) return a.isEqual(b);
-    // If a is not an object by this point, we can't handle it.
+    // 如果 a 不是对象，不处理
     if (atype !== 'object') return false;
-    // Nothing else worked, deep compare the contents.
+    // 深度比较内容
     var aKeys = _.keys(a), bKeys = _.keys(b);
     // Different object sizes?
     if (aKeys.length != bKeys.length) return false;
