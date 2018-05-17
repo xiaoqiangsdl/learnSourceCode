@@ -1,5 +1,6 @@
 /**
  * Module dependencies.
+ * 模块依赖
  */
 
 var deprecate = require('depd')('express');
@@ -26,6 +27,7 @@ exports.mime = connect.mime;
 
 /**
  * Create an express application.
+ * 创建一个 express 应用
  *
  * @return {Function}
  * @api public
