@@ -70,12 +70,13 @@ if (process.argv.length === 2) {
 }
 
 /*//////////////// cmd methods /////////////////*/
-
+// 列出所有的源
 function onList() {
     getCurrentRegistry(function(cur) {
         var info = [''];
         var allRegistries = getAllRegistry();
 
+        // 获取源名
         Object.keys(allRegistries).forEach(function(key) {
             var item = allRegistries[key];
             var prefix = item.registry === cur ? '* ' : '  ';
@@ -87,11 +88,13 @@ function onList() {
     });
 }
 
+// 展示现在正在使用的源
 function showCurrent() {
     getCurrentRegistry(function(cur) {
         var allRegistries = getAllRegistry();
         Object.keys(allRegistries).forEach(function(key) {
             var item = allRegistries[key];
+            // 通过判断源是否匹配，得到对应的源的名称
             if (item.registry === cur) {
                 printMsg([key]);
                 return;
@@ -100,12 +103,14 @@ function showCurrent() {
     });
 }
 
+// 切换源
 function onUse(name) {
     var allRegistries = getAllRegistry();
     if (allRegistries.hasOwnProperty(name)) {
         var registry = allRegistries[name];
         npm.load(function (err) {
             if (err) return exit(err);
+            // 使用 npm 包命令设置源
             npm.commands.config(['set', 'registry', registry.registry], function (err, data) {
                 if (err) return exit(err);
                 console.log('                        ');
@@ -122,14 +127,19 @@ function onUse(name) {
     }
 }
 
+// 删除源
+// 只能删除自定义源
 function onDel(name) {
     var customRegistries = getCustomRegistry();
     if (!customRegistries.hasOwnProperty(name)) return;
     getCurrentRegistry(function(cur) {
+        // 如果要删除的源是正在使用的源，那就切换回 npm
         if (cur === customRegistries[name].registry) {
             onUse('npm');
         }
+        // 删除该属性
         delete customRegistries[name];
+        // 重新设置本地源
         setCustomRegistry(customRegistries, function(err) {
             if (err) return exit(err);
             printMsg([
@@ -139,8 +149,11 @@ function onDel(name) {
     });
 }
 
+// 添加一个新的源
 function onAdd(name, url, home) {
     var customRegistries = getCustomRegistry();
+    // 如果已经有这个名称了，不再执行下面的代码
+    // @~ 个人觉得不太合理，只检查自定义源，万一和那些官方源重复了呢？应该用 getAllRegistry
     if (customRegistries.hasOwnProperty(name)) return;
     var config = customRegistries[name] = {};
     if (url[url.length - 1] !== '/') url += '/'; // ensure url end with /
@@ -156,21 +169,26 @@ function onAdd(name, url, home) {
     });
 }
 
+// 用浏览器打开官方网页
 function onHome(name, browser) {
     var allRegistries = getAllRegistry();
     var home = allRegistries[name] && allRegistries[name].home;
     if (home) {
         var args = [home];
         if (browser) args.push(browser);
+        // 使用 open 打开地址
         open.apply(null, args);
     }
 }
 
+// 测试源的网速
 function onTest(registry) {
     var allRegistries = getAllRegistry();
 
     var toTest;
 
+    // 如果有指定源，那就显示单个
+    // 如果没有指定源，就显示全部的响应时间
     if (registry) {
         if (!allRegistries.hasOwnProperty(registry)) {
             return;
@@ -180,6 +198,7 @@ function onTest(registry) {
         toTest = allRegistries;
     }
 
+    // @! async 要学会用
     async.map(Object.keys(toTest), function(name, cbk) {
         var registry = toTest[name];
         var start = +new Date();
@@ -187,15 +206,17 @@ function onTest(registry) {
             cbk(null, {
                 name: name,
                 registry: registry.registry,
-                time: (+new Date() - start),
+                time: (+new Date() - start),  // 通过响应返回时间点减去请求发起时间点，得到响应时间
                 error: error ? true : false
             });
         });
     }, function(err, results) {
         getCurrentRegistry(function(cur) {
             var msg = [''];
+            // 获取每个源响应时间
             results.forEach(function(result) {
-                var prefix = result.registry === cur ? '* ' : '  ';
+                // 当前源 加上 * 号
+                // 通过 result.time 来拿到请求和响应的时间差
                 var suffix = result.error ? 'Fetch Error' : result.time + 'ms';
                 msg.push(prefix + result.name + line(result.name, 8) + suffix);
             });
@@ -211,6 +232,7 @@ function onTest(registry) {
 
 /*
  * get current registry
+ * 获取现在使用的源
  */
 function getCurrentRegistry(cbk) {
     npm.load(function(err, conf) {
@@ -219,22 +241,29 @@ function getCurrentRegistry(cbk) {
     });
 }
 
+// 获取本地自定义源的信息
 function getCustomRegistry() {
     return fs.existsSync(NRMRC) ? ini.parse(fs.readFileSync(NRMRC, 'utf-8')) : {};
 }
 
+// 设置自定义数据，存在本地文件内
 function setCustomRegistry(config, cbk) {
     echo(ini.stringify(config), '>', NRMRC, cbk);
 }
 
+// 获取所有数据信息
+// 官方数据 +  自定义数据
 function getAllRegistry() {
     return extend({}, registries, getCustomRegistry());
 }
 
+// 打印报错
 function printErr(err) {
     console.error('an error occured: ' + err);
 }
 
+// 打印信息
+// 传入的是数组
 function printMsg(infos) {
     infos.forEach(function(info) {
         console.log(info);
@@ -243,6 +272,7 @@ function printMsg(infos) {
 
 /*
  * print message & exit
+ * 打印信息并退出
  */
 function exit(err) {
     printErr(err);
