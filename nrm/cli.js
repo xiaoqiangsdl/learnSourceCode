@@ -279,7 +279,10 @@ function exit(err) {
     process.exit(1);
 }
 
+// 根据名称长度补全线条
 function line(str, len) {
+    // 1 到时候是没有线 最多是 len - 1 条线
+    // @~ 我觉得还是 len - str.length + 1 看起来比较直观一些
     var line = new Array(Math.max(1, len - str.length)).join('-');
     return ' ' + line + ' ';
 }
