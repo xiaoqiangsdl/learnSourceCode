@@ -3,10 +3,12 @@ module.exports = class PromptModuleAPI {
     this.creator = creator
   }
 
+  // 将 feature 选项填入
   injectFeature (feature) {
     this.creator.featurePrompt.choices.push(feature)
   }
 
+  // 将 inject 选项填入
   injectPrompt (prompt) {
     this.creator.injectedPrompts.push(prompt)
   }

@@ -2,12 +2,13 @@
 
 const fs = require('fs')
 const path = require('path')
-const slash = require('slash')
+const slash = require('slash')  // 转换路径中的双反斜杠转换成斜杠
 const chalk = require('chalk')
 const semver = require('semver')
 const minimist = require('minimist')
 const requiredVersion = require('../package.json').engines.node
 
+// 分析 node 版本是否符合要求
 if (!semver.satisfies(process.version, requiredVersion)) {
   console.log(chalk.red(
     `You are using Node ${process.version}, but this version of vue-cli ` +
@@ -17,7 +18,9 @@ if (!semver.satisfies(process.version, requiredVersion)) {
 }
 
 // enter debug mode when creating test repo
+// 当创建测试仓库时进入 debug 模式
 if (
+  // 判断有无目录
   slash(process.cwd()).indexOf('/packages/test') > 0 && (
     fs.existsSync(path.resolve(process.cwd(), '../@vue')) ||
     fs.existsSync(path.resolve(process.cwd(), '../../@vue'))
@@ -33,6 +36,7 @@ program
   .version(require('../package').version)
   .usage('<command> [options]')
 
+// 创建项目
 program
   .command('create <app-name>')
   .description('create a new project powered by vue-cli-service')
@@ -46,9 +50,12 @@ program
   .option('-c, --clone', 'Use git clone when fetching remote preset')
   .option('-x, --proxy', 'Use specified proxy when creating project')
   .action((name, cmd) => {
+    console.log(cleanArgs(cmd));
+    console.log(cmd.options);
     require('../lib/create')(name, cleanArgs(cmd))
   })
 
+// 添加插件
 program
   .command('add <plugin> [pluginOptions]')
   .allowUnknownOption()
@@ -57,6 +64,7 @@ program
     require('../lib/add')(plugin, minimist(process.argv.slice(3)))
   })
 
+// 调用插件
 program
   .command('invoke <plugin> [pluginOptions]')
   .allowUnknownOption()
@@ -65,6 +73,7 @@ program
     require('../lib/invoke')(plugin, minimist(process.argv.slice(3)))
   })
 
+// 检查项目的 webpack 配置
 program
   .command('inspect [paths...]')
   .option('--mode <mode>')
@@ -78,6 +87,7 @@ program
     require('../lib/inspect')(paths, cleanArgs(cmd))
   })
 
+// 启动服务
 program
   .command('serve [entry]')
   .description('serve a .js or .vue file in development mode with zero config')
@@ -87,6 +97,7 @@ program
     loadCommand('serve', '@vue/cli-service-global').serve(entry, cleanArgs(cmd))
   })
 
+// 打包项目
 program
   .command('build [entry]')
   .option('-t, --target <target>', 'Build target (app | lib | wc | wc-async, default: app)')
@@ -97,6 +108,7 @@ program
     loadCommand('build', '@vue/cli-service-global').build(entry, cleanArgs(cmd))
   })
 
+// 在网页中打开配置
 program
   .command('ui')
   .option('-p, --port <port>', 'Port used for the UI server (by default search for awailable port)')
@@ -108,6 +120,7 @@ program
     require('../lib/ui')(cleanArgs(cmd))
   })
 
+// 创建项目 老的方式 2.x 版本
 program
   .command('init <template> <app-name>')
   .description('generate a project from a remote template (legacy API, requires @vue/cli-init)')
@@ -117,6 +130,7 @@ program
   })
 
 // output help information on unknown commands
+// 当输入不存在的命令时。输出 help 信息
 program
   .arguments('<command>')
   .action((cmd) => {
@@ -126,6 +140,7 @@ program
   })
 
 // add some useful info on help
+// 提示帮助信息时加入一些有用的信息
 program.on('--help', () => {
   console.log()
   console.log(`  Run ${chalk.cyan(`vue <command> --help`)} for detailed usage of given command.`)
@@ -135,6 +150,7 @@ program.on('--help', () => {
 program.commands.forEach(c => c.on('--help', () => console.log()))
 
 // enhance common error messages
+// 补充常见错误信息
 const enhanceErrorMessages = (methodName, log) => {
   program.Command.prototype[methodName] = function (...args) {
     if (methodName === 'unknownOption' && this._allowUnknownOption) {
@@ -163,12 +179,15 @@ enhanceErrorMessages('optionMissingArgument', (option, flag) => {
 
 program.parse(process.argv)
 
+// 若没有输入子命令，跳报错
 if (!process.argv.slice(2).length) {
   program.outputHelp()
 }
 
 // commander passes the Command object itself as options,
 // extract only actual options into a fresh object.
+// 将 option 转换成对象
+// 使用的选项 对应的 value 为 true, 否则为 undefined
 function cleanArgs (cmd) {
   const args = {}
   cmd.options.forEach(o => {

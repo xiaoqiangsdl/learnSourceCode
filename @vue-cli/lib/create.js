@@ -8,12 +8,13 @@ const { getPromptModules } = require('./util/createTools')
 const { error, stopSpinner, exit } = require('@vue/cli-shared-utils')
 const validateProjectName = require('validate-npm-package-name')
 
+
 async function create (projectName, options) {
   if (options.proxy) {
     process.env.HTTP_PROXY = options.proxy
   }
 
-  const inCurrent = projectName === '.'
+  const inCurrent = projectName === '.'  // 判断是否是当前项目
   const name = inCurrent ? path.relative('../', process.cwd()) : projectName
   const targetDir = path.resolve(projectName || '.')
 
@@ -26,7 +27,9 @@ async function create (projectName, options) {
     exit(1)
   }
 
+  // 判断目标目录是否存在
   if (fs.existsSync(targetDir)) {
+    // 若有 force 选项，强制删除原目录
     if (options.force) {
       await fs.remove(targetDir)
     } else {
@@ -43,6 +46,7 @@ async function create (projectName, options) {
           return
         }
       } else {
+        // 提示接下来进行重写、合并、还是取消
         const { action } = await inquirer.prompt([
           {
             name: 'action',
@@ -65,6 +69,7 @@ async function create (projectName, options) {
     }
   }
 
+  // 使用创建器创建项目
   const creator = new Creator(name, targetDir, getPromptModules())
   await creator.create(options)
 }

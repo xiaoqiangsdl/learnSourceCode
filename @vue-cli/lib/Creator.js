@@ -38,6 +38,7 @@ const {
 const isManualMode = answers => answers.preset === '__manual__'
 
 module.exports = class Creator extends EventEmitter {
+  // 项目名，目标路径，提示模块
   constructor (name, context, promptModules) {
     super()
 
@@ -53,10 +54,23 @@ module.exports = class Creator extends EventEmitter {
 
     this.run = this.run.bind(this)
 
+    // @?
     const promptAPI = new PromptModuleAPI(this)
+    // m -> 详细的选项文件 给每个选项注入详细的选项信息
     promptModules.forEach(m => m(promptAPI))
   }
 
+  // cliOptions 对应的就是命令里的选项 vue create xx --option
+  // 格式
+  // { preset: true/undefined,
+  //   default: true/undefined,
+  //   inlinePreset: true/undefined,
+  //   packageManager: true/undefined,
+  //   registry: true/undefined,
+  //   git: true/undefined,
+  //   force: true/undefined,
+  //   clone: true/undefined,
+  //   proxy: true/undefined }
   async create (cliOptions = {}, preset = null) {
     const isTestOrDebug = process.env.VUE_CLI_TEST || process.env.VUE_CLI_DEBUG
     const { run, name, context, createCompleteCbs } = this
@@ -81,6 +95,8 @@ module.exports = class Creator extends EventEmitter {
       }
     }
 
+    // 如果有预设
+    // @? 来一层深拷贝，是为了防止原数据被改动么？
     // clone before mutating
     preset = cloneDeep(preset)
     // inject core service
@@ -88,17 +104,20 @@ module.exports = class Creator extends EventEmitter {
       projectName: name
     }, preset)
 
+    // 包管理器
     const packageManager = (
       cliOptions.packageManager ||
       loadOptions().packageManager ||
       (hasYarn() ? 'yarn' : 'npm')
     )
 
+    // 清空控制台
     await clearConsole()
     logWithSpinner(`✨`, `Creating project in ${chalk.yellow(context)}.`)
     this.emit('creation', { event: 'creating' })
 
     // get latest CLI version
+    // 获取 cli 最新版本
     const { latest } = await getVersions()
     // generate package.json with plugin dependencies
     const pkg = {
@@ -314,12 +333,15 @@ module.exports = class Creator extends EventEmitter {
     return plugins
   }
 
+  // 获取本地预设
   getPresets () {
     const savedOptions = loadOptions()
     return Object.assign({}, savedOptions.presets, defaults.presets)
   }
 
+  // 获取刚进入时的命令选项
   resolveIntroPrompts () {
+    // 获取预设
     const presets = this.getPresets()
     const presetChoices = Object.keys(presets).map(name => {
       return {
@@ -353,6 +375,7 @@ module.exports = class Creator extends EventEmitter {
     }
   }
 
+  // 脚手架最后的的提示
   resolveOutroPrompts () {
     const outroPrompts = [
       {
@@ -380,7 +403,7 @@ module.exports = class Creator extends EventEmitter {
       },
       {
         name: 'saveName',
-        when: answers => answers.save,
+        when: answers => answers.save,  // inquirer 还是有这个功能的，某个条件下显示某个选项
         type: 'input',
         message: 'Save preset as:'
       }
@@ -429,6 +452,7 @@ module.exports = class Creator extends EventEmitter {
     return prompts
   }
 
+  // 是否需要初始化 git
   async shouldInitGit (cliOptions) {
     if (!hasGit()) {
       return false
